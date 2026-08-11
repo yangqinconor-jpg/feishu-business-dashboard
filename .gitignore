@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local secrets. Do not commit real credentials.
+.env
+配置文件.env
+
+# Local macOS automation and shortcuts.
+*.plist
+后台运行目录-双击打开
+日志目录-双击打开
+
+# Logs and generated output.
+*.log
+*.err.log
