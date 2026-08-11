@@ -208,7 +208,8 @@ FROM (
         DATE(o.create_time) AS 日期,
         '抖音' AS channel,
         CASE
-            WHEN o.shop_id = 60582548 THEN '迈科'
+            WHEN o.shop_id = 60582548 AND CAST(IFNULL(o.author_id, '') AS CHAR) = '1019954776506510' THEN '迈科'
+            WHEN o.shop_id = 60582548 THEN '自营'
             WHEN CAST(IFNULL(o.author_id, '') AS CHAR) IN ('1019954776506510', '299496529994004') THEN '自营'
             WHEN TRIM(IFNULL(o.author_name, '')) IN ('申怡读书', '申怡伴学', '申怡办学') THEN '自营'
             WHEN w.first_time IS NOT NULL AND o.create_time >= w.first_time AND o.create_time <= w.last_time THEN '达人'
