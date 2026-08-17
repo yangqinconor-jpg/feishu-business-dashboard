@@ -216,39 +216,6 @@ def mapping_text(value):
     return "" if value is None else str(value)
 
 
-def product_suggestion(product_name):
-    """Return a conservative initial product classification.
-
-    Unknown names remain unchanged and are marked for manual confirmation.
-    """
-    name = mapping_text(product_name).strip()
-    rules = [
-        (("跟我写好每学期",), "跟我写好每学期", "跟我写好每学期"),
-        (("跟我读好每学期", "跟我读学年版", "跟我读每学期"), "跟我读好每学期", "跟我读好每学期"),
-        (("周周学",), "申怡阅读周周学", "周周学"),
-        (("初中语文知识全讲", "实用初阶语文知识"), "初中语文知识全讲", "初中语文知识全讲"),
-        (("中国古诗词",), "中国古诗词大全", "中国古诗词大全"),
-        (("古文观止",), "申怡精讲《古文观止》", "古文观止"),
-        (("笠翁对韵",), "申怡讲《笠翁对韵》", "笠翁对韵"),
-        (("高中语文系统", "高中系统课", "高中语文高效学"), "高中语文系统课", "高中语文系统课"),
-        (("四大名著",), "申怡讲四大名著", "经典名著"),
-        (("三国演义",), "申怡讲《三国演义》", "经典名著"),
-        (("水浒传",), "申怡讲《水浒传》", "经典名著"),
-        (("红楼梦",), "申怡讲《红楼梦》", "经典名著"),
-        (("西游记",), "申怡讲《西游记》", "经典名著"),
-        (("世说新语",), "申怡精讲《世说新语》", "经典名著"),
-        (("论语",), "申怡讲《论语》", "经典古文"),
-        (("365读书会", "读书会会员", "读书会买一送一"), "申怡365读书会", "读书会"),
-        (("读揽江山",), "读揽江山", "家庭阅读"),
-        (("知人论诗",), "知人论诗", "古诗词"),
-    ]
-    product_type = "组合包" if any(marker in name for marker in ("+", "套装", "买一送一", "赠一年", "一体化", "组合")) else "单品"
-    for keywords, standard_name, category in rules:
-        if any(keyword in name for keyword in keywords):
-            return standard_name, category, product_type, "自动判断"
-    return name, "", product_type, "待确认"
-
-
 def product_mapping_key(platform, product_name):
     return (mapping_text(platform).strip(), mapping_text(product_name).strip())
 
@@ -271,14 +238,10 @@ def ensure_product_mappings(token, app_token, table_id, mappings, rows, dry_run)
         key = product_mapping_key(row.get("下单平台", ""), row.get("商品名称", ""))
         if not key[1] or key in mappings:
             continue
-        standard, category, product_type, status = product_suggestion(key[1])
         fields = {
             "平台": key[0],
             "原商品名称": key[1],
-            "标准产品名": standard,
-            "产品大类": category,
-            "商品类型": product_type,
-            "匹配状态": status,
+            "匹配状态": "待填写",
         }
         mappings[key] = fields
         new_records.append(fields)
@@ -401,7 +364,7 @@ def sync(rows, start_date, end_date, dry_run=False):
     for row in rows:
         key = product_mapping_key(row.get("下单平台", ""), row.get("商品名称", ""))
         mapped = mappings.get(key, {})
-        row["标准产品名"] = mapping_text(mapped.get("标准产品名")) or row.get("商品名称", "")
+        row["标准产品名"] = mapping_text(mapped.get("标准产品名")).strip()
         order_no = row["订单号"]
         fields = build_fields(row, field_types)
         record = existing.get(order_no)
